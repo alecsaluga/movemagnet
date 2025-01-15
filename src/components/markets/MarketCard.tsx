@@ -37,11 +37,11 @@ export function MarketCard({ market, onSubscribe }: MarketCardProps) {
             </p>
           )}
           {market.features && market.features.length > 0 && (
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-3">
               {market.features.map((feature, index) => (
                 <li key={index} className="flex items-center text-sm text-muted-foreground">
-                  <span className="mr-2">•</span>
-                  {feature}
+                  <span className="mr-2 text-lg">•</span>
+                  {feature.title}
                 </li>
               ))}
             </ul>

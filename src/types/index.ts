@@ -4,6 +4,11 @@ export interface User {
   avatar?: string;
 }
 
+export interface MarketFeature {
+  title: string;
+  description?: string;
+}
+
 export interface Market {
   id: string;
   name: string;
@@ -11,7 +16,7 @@ export interface Market {
   totalLeads: number;
   price: number;
   trial_days?: number;
-  features?: string[];
+  features?: MarketFeature[];
   isSubscribed: boolean;
 }
 
@@ -23,17 +28,23 @@ export interface Address {
   zip: string;
 }
 
-export interface Contact {
-  name: string;
-  phone: string;
-}
-
 export interface Lead {
   id: string;
   businessName: string;
   address: Address;
   predictedMoveDate?: string;
-  contact: Contact;
+  contact1_name?: string;
+  contact1_role?: string;
+  contact1_email?: string;
+  contact1_phone?: string;
+  contact2_name?: string;
+  contact2_role?: string;
+  contact2_email?: string;
+  contact2_phone?: string;
+  contact3_name?: string;
+  contact3_role?: string;
+  contact3_email?: string;
+  contact3_phone?: string;
   isNew: boolean;
   inCRM: boolean;
   addedAt: string;

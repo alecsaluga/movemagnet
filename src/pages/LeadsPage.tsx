@@ -3,6 +3,7 @@ import { LeadCard } from '@/components/leads/LeadCard';
 import { MarketSelector } from '@/components/leads/MarketSelector';
 import { LeadFilters } from '@/components/leads/LeadFilters';
 import { LeadStats } from '@/components/leads/LeadStats';
+import { AddLeadDialog } from '@/components/leads/AddLeadDialog';
 import { Building2 } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { parseDate } from '@/lib/dates';
@@ -16,7 +17,7 @@ export function LeadsPage() {
     dateRange: { from: undefined, to: undefined },
   });
 
-  const { leads, loading, toggleCRM, deleteLead } = useLeads(selectedMarket);
+  const { leads, loading, toggleCRM, deleteLead, refreshLeads } = useLeads(selectedMarket);
 
   const filteredLeads = leads.filter(lead => {
     // Text search
@@ -60,10 +61,18 @@ export function LeadsPage() {
           <Building2 className="h-8 w-8" />
           <h1 className="text-3xl font-bold">Your Leads</h1>
         </div>
-        <MarketSelector
-          selectedMarket={selectedMarket}
-          onMarketChange={setSelectedMarket}
-        />
+        <div className="flex items-center gap-4">
+          <MarketSelector
+            selectedMarket={selectedMarket}
+            onMarketChange={setSelectedMarket}
+          />
+          {selectedMarket && (
+            <AddLeadDialog 
+              marketId={selectedMarket}
+              onLeadAdded={refreshLeads}
+            />
+          )}
+        </div>
       </div>
 
       <LeadStats {...stats} />

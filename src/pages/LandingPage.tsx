@@ -79,7 +79,7 @@ export function LandingPage() {
             onClick={() => navigate('/auth/login')}
             className="bg-red-500 hover:bg-red-600 text-white px-8"
           >
-            Start Free Trial
+            Get Started
           </Button>
         </div>
       </section>

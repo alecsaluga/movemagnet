@@ -45,9 +45,41 @@ serve(async (req) => {
       .eq('id', marketId)
       .single();
 
+    if (!market) {
+      throw new Error('Market not found');
+    }
 
-    if (!market?.stripe_price_id) {
-      throw new Error('Market not found or no price configured');
+    // Create or get Stripe product if needed
+    let productId = market.stripe_product_id;
+    let priceId = market.stripe_price_id;
+
+    if (!productId || !priceId) {
+      // Create product
+      const product = await stripe.products.create({
+        name: `${market.name}, ${market.state} Market Access`,
+        description: `Access to all leads in ${market.name}, ${market.state}`,
+      });
+      productId = product.id;
+
+      // Create price
+      const price = await stripe.prices.create({
+        product: productId,
+        unit_amount: Math.round(market.price * 100), // Convert to cents
+        currency: 'usd',
+        recurring: {
+          interval: 'month',
+        },
+      });
+      priceId = price.id;
+
+      // Update market with Stripe IDs
+      await supabase
+        .from('markets')
+        .update({
+          stripe_product_id: productId,
+          stripe_price_id: priceId,
+        })
+        .eq('id', marketId);
     }
 
     // Get user details
@@ -77,6 +109,7 @@ serve(async (req) => {
         .update({ stripe_customer_id: customerId })
         .eq('id', userId);
     }
+
     let subscription_data_options = {
       metadata: { marketId, userId },
       trial_period_days: market.trial_days
@@ -84,15 +117,16 @@ serve(async (req) => {
     if(!market.trial_days){
       delete subscription_data_options.trial_period_days
     }
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      line_items: [{ price: market.stripe_price_id, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
       success_url: `${returnUrl}?success=true`,
       cancel_url: `${returnUrl}?canceled=true`,
       metadata: { marketId, userId },
-      subscription_data: subscription_data_options
+      subscription_data: subscription_data_options,
     });
 
     return new Response(

@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Check, Plus } from 'lucide-react';
+import { Check, Loader2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SubscribeDialogProps {
@@ -39,7 +39,7 @@ export function SubscribeDialog({ market, onSubscribe }: SubscribeDialogProps) {
     setLoading(true);
     try {
       await onSubscribe(market.id);
-      // Don't close the dialog - it will be redirected to Stripe
+      // Don't close dialog - user will be redirected to Stripe
     } catch (error) {
       console.error('Subscription error:', error);
       toast({
@@ -48,6 +48,7 @@ export function SubscribeDialog({ market, onSubscribe }: SubscribeDialogProps) {
         variant: 'destructive',
       });
       setLoading(false);
+      setOpen(false);
     }
   };
 
@@ -96,7 +97,14 @@ export function SubscribeDialog({ market, onSubscribe }: SubscribeDialogProps) {
             disabled={loading}
             className="w-full"
           >
-            {loading ? 'Processing...' : 'Start Subscription'}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              'Start Subscription'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -19,7 +19,10 @@ export async function createSubscription(marketId: string) {
     if (market.price === 0) {
       const { error } = await supabase
         .from('markets')
-        .update({ subscription_status: 'subscribed' })
+        .update({ 
+          subscription_status: 'subscribed',
+          current_subscriber_id: user.id 
+        })
         .eq('id', marketId);
       
       if (error) throw error;
@@ -27,31 +30,35 @@ export async function createSubscription(marketId: string) {
     }
 
     // Create checkout session
-    const response = await supabase.functions.invoke(
+    const { data, error: functionError } = await supabase.functions.invoke(
       'create-checkout-session',
       {
         body: { 
           marketId,
           userId: user.id,
-          returnUrl: window.location.origin + '/markets'
+          returnUrl: window.location.origin + '/app'
         }
       }
     );
 
-    if (response.error) {
-      console.error('Function error:', response.error);
+    if (functionError) {
+      console.error('Function error:', functionError);
       throw new Error('Failed to create checkout session');
     }
 
-    const { data } = response;
     if (!data?.sessionId) {
       console.error('No session ID:', data);
       throw new Error('No session ID returned');
     }
 
-    // Redirect to Stripe Checkout
+    // Get Stripe instance
     const stripe = await getStripe();
     if (!stripe) throw new Error('Stripe not initialized');
+
+    console.log('Redirecting to checkout with session:', {
+      sessionId: data.sessionId,
+      mode: data.sessionId.startsWith('cs_test_') ? 'test' : 'live'
+    });
 
     const { error: checkoutError } = await stripe.redirectToCheckout({
       sessionId: data.sessionId
